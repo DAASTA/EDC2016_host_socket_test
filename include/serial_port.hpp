@@ -80,11 +80,11 @@ public:
         // open com device
         result = OpenCOMDevice(com_, baud_rate_);
         if (result != 0) {
-            printf("[Error] Failed to open COM%d", com_);
+            printf("[Error] Failed to open COM%d\n", com_);
             return;
         }
 
-        printf("[Info] COM%d launched.", com_);
+        printf("[Info] COM%d launched.\n", com_);
         valid_ = true;
     }
 
@@ -97,7 +97,9 @@ public:
 
     vector<string> receive() {
         if (!valid_) {
-            printf("[Warning] This serial port (com%d) may be invalid.\n", com_);
+            vector<string> list;
+            printf("[Error] This serial port (com%d) is invalid.\n", com_);
+            return list;
         }
         total_length += CollectUARTData(com_, buffer);
         return protol_.decodeLines(buffer, total_length);
