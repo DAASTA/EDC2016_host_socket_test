@@ -1,26 +1,24 @@
 // Created by wxk14, 2016.8
 //   test for the `socket` and `serial port`
 
+#include"my_string.hpp"
 #include"socket.hpp"
 #include"serial_port.hpp"
 #include"time_stamp.hpp"
 
 #include<cstdio>
+#include<conio.h>
+#include<iostream>
 #include<windows.h>
 
 const char* IP_ADDRESS = "127.0.0.1";
 const int PORT = 30000;
 
-string Q, R, S;
+MyString shared_data("");
 
-char* function(char* s_out, const char* s_in)
+MyString function(MyString s_in)
 {
-    SYSTEMTIME sys;
-    GetLocalTime(&sys);
-
-    sprintf(s_out, "%s echo: %s \n %02X %02X ", getTimeStamp().c_str(), s_in, (unsigned char)S[7], (unsigned char)S[6]);
-
-    return s_out;
+    return MyString(getTimeStamp()) + MyString(" ") + shared_data;
 }
 
 int main(int argc, char* argv[])
@@ -28,33 +26,34 @@ int main(int argc, char* argv[])
     SocketServer socket_server(30000, function);
     socket_server.run();
 
-    vector<string> head_list;
-    head_list.push_back("UQ"); // 0x 55 51
-    head_list.push_back("UR"); // 0x 55 52
-    head_list.push_back("US"); // 0x 55 53
+    //char buffer[20] = { 0x0d, 0x0a, 0x00 };
+    //vector<string> head_list;
+    //head_list.push_back(buffer);
+    //SerialPortProtol protol(head_list, 20);
 
-    SerialPortProtol protol(head_list, 11);
-    SerialPort port(3, 9600, protol);
+    SerialPort port(12, 115200/*, protol*/);
 
     while (true)
     {
-        vector<string> list = port.receive();
-        for (int i = 0; i < list.size(); ++i) {
-            for (int j = 0; j < protol.getLength(); ++j) printf("%02X ", (unsigned char)list[i][j]);
-            switch ((unsigned char)list[i][1])
-            {
-            case 'Q':
-                Q = list[i];
-                break;
-            case 'R':
-                R = list[i];
-                break;
-            case 'S':
-                S = list[i];
-                break;
+        vector<MyString> list = port.receive();
+        for (int i = 0; i < list.size(); ++i) 
+            printf("%s %s\n", getTimeStamp().c_str(), list[i].c_str());
+        if (list.size() > 0) shared_data = list[0];
+
+        if (_kbhit()) {
+            char ch = _getch();
+            if (ch == ' ') {
+                printf("%s === 暂停: 等待输入 ===\n", getTimeStamp().c_str());
+                //system("pause");
+                printf("输入要发送的字符(ASCII): \n");
+                char buffer[256];
+                std::cin.getline(buffer, 256);
+                port.send(MyString(buffer));
+                printf("%s === 运行中 - 正在持续接受数据，按空格键暂停 ===\n", getTimeStamp().c_str());
             }
-            printf("\n");
         }
+
         Sleep(50);
     }
+    
 }

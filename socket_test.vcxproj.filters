@@ -32,5 +32,8 @@
     <ClInclude Include="include\serial_port.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\my_string.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

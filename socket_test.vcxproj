@@ -23,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\com.hpp" />
+    <ClInclude Include="include\my_string.hpp" />
     <ClInclude Include="include\serial_port.hpp" />
     <ClInclude Include="include\socket.hpp" />
     <ClInclude Include="include\time_stamp.hpp" />

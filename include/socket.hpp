@@ -6,8 +6,8 @@
 //      - run(): 启动服务器，新建线程进行循环监听。注意这里可能出现的线程安全问题。
 //      - stop(): 终止服务器。
 //  - SocketClient(port, ip="127.0.0.1"): 建立UDP客户端
-//      - send("..."): 发送信息到指定端口。
-//      - sendAndRecv("...",echo,length): 发送信息并立即接受返回信息到echo。此函数是堵塞的，默认等待时间为20ms。
+//      - send(MyString): 发送信息到指定端口。
+//      - MyString sendAndRecv(MyString): 发送信息并立即接受返回信息到echo。此函数是堵塞的，默认等待时间为20ms。
 
 #pragma once
 
@@ -16,6 +16,8 @@
 
 #include<WinSock2.h>
 #include<windows.h>
+
+#include"my_string.hpp"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -54,7 +56,7 @@ int SocketBase::count = 0;
 class SocketServer : SocketBase {
 public:
     // 定义在收到字符串时进行处理的函数 SlotFunction
-    typedef char* (*SlotFunction)(char*,const char*);
+    typedef MyString (*SlotFunction)(MyString);
 
     SocketServer(int PORT, SlotFunction function)
         : valid_(false)
@@ -135,19 +137,21 @@ private:
         if (!valid_ || !running_ || socket == INVALID_SOCKET) return -1;
 
         char msg[8192] = "";
-        char echo[8192] = "";
+        int len;
+
         sockaddr_in addrcl;
-        int len = sizeof(sockaddr);
+        int fromlen = sizeof(sockaddr);
 
         printf("[Info] SocketServer kernel launched.\n");
 
         while (valid_ && running_) {
             try {
-                recvfrom(socket, msg, sizeof(msg), 0, (sockaddr*)&addrcl, &len);
-                printf("[Debug] receive from %s:%d : %s\n", inet_ntoa(addrcl.sin_addr), addrcl.sin_port, msg);
-                function_(echo, msg);
-                if (echo != NULL && echo[0] != '\0') {
-                    sendto(socket, echo, strlen(echo) + 1, 0, (sockaddr*)&addrcl, sizeof(sockaddr_in));
+                len = recvfrom(socket, msg, sizeof(msg), 0, (sockaddr*)&addrcl, &fromlen);
+                MyString m_msg(msg, len);
+                printf("[Debug] receive from %s:%d : %s\n", inet_ntoa(addrcl.sin_addr), addrcl.sin_port, m_msg.c_str());
+                MyString m_echo = function_(m_msg);
+                if (!m_echo.empty()) {
+                    sendto(socket, m_echo.c_str(), m_echo.length(), 0, (sockaddr*)&addrcl, sizeof(sockaddr_in));
                 }
             }
             catch (const std::exception e) {
@@ -209,14 +213,14 @@ public:
         if (socket != INVALID_SOCKET) closesocket(socket);
     }
 
-    void send(const char* s) {
+    void send(MyString s) {
         if (!valid_) {
             printf("[Warning] This SocketClient is not valid!\n");
             return;
         }
 
         try {
-            sendto(socket, s, strlen(s) + 1, 0, (SOCKADDR*)&addr, sizeof(sockaddr));
+            sendto(socket, s.c_str(), s.length(), 0, (SOCKADDR*)&addr, sizeof(sockaddr));
         }
         catch (std::exception e) {
             printf("[Error] Failed to send the message.\n");
@@ -224,33 +228,34 @@ public:
             return;
         }
     }
-    void sendAndRecv(const char* msg, char* echo, const int length) {
-        echo[0] = '\0';
+    MyString sendAndRecv(MyString msg) {
+        MyString null_s("");
+        
         if (valid_) send(msg);
         if (!valid_) {
             printf("[Warning] This SocketClient is not valid!\n");
-            return;
+            return null_s;
         }
 
-        int result;
-        int len = sizeof(sockaddr);
+        int len;
+        int fromlen = sizeof(sockaddr);
+        char echo[8192];
 
         try {
-            result = recvfrom(socket, echo, length, 0, (sockaddr*)&addr, &len);
-            if (result == EWOULDBLOCK || result == EAGAIN) {
-                printf("[Warning] (SocketClient) Time out when recv.\n");
-                return;
-            }
+            len = recvfrom(socket, echo, 8192, 0, (sockaddr*)&addr, &fromlen);
         }
         catch (const std::exception& e) {
             printf("[Error] (SocketClient) Exception catched when recv : %s\n",e.what());
             valid_ = false;
-            return;
+            return null_s;
         }
 
-        if (echo[0] == '\0') {
+        if (len <= 0) {
             printf("[Warning] (SocketClient) No info received. \n");
+            return null_s;
         }
+
+        return MyString(echo, len);
     }
 
     inline bool isValid() { return valid_; }

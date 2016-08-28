@@ -3,12 +3,13 @@
 //
 //  - SerialPortProtol(header_list, length): 简单的串口协议。header_list是可以接受的字符串头；length是协议规定的字符串长度。
 //  - SerialPort(com, baud_rate, protol): 开启串口。给出串口号，波特率，串口协议。
-//      - send(msg, length): 发送字符串及其长度。
-//      - receive(): 接受一次信息，并返回符合串口协议的所有字符串。注意，返回的字符串可能在中间出现0x00。
+//      - send(MyString): 发送字符串。
+//      - receive(): 接受一次信息，并返回符合串口协议的所有字符串。
 
 #pragma once
 
 #include"com.hpp"
+#include"my_string.hpp"
 
 #include<vector>
 #include<string>
@@ -19,22 +20,35 @@ using std::string;
 class SerialPortProtol {
 
 public:
+    SerialPortProtol() 
+        : no_protol(true)
+    {
+    }
     SerialPortProtol(vector<string> header_list, int length) 
         : header_list_(header_list)
         , length_(length)
+        , no_protol(false)
     {
+        if (length_ <= 0) no_protol = true;
     }
 
     ~SerialPortProtol() {
     }
 
-    vector<string> decodeLines(char* line, int& len)
+    vector<MyString> decodeLines(char* line, int& len)
     {
-        vector<string> list;
+        vector<MyString> list;
+        if (len <= 0) return list;
+        if (no_protol) {
+            list.push_back(MyString(line, len));
+            len = 0;
+            return list;
+        }
+
         int offset = 0;
         while (len - offset > length_) {
             if (checkHeader(line + offset)) {
-                list.push_back(cutString(line + offset));
+                list.push_back(MyString(line + offset, length_));
                 offset += length_;
             }
             else {
@@ -50,25 +64,22 @@ public:
     inline int getLength() { return length_; }
 
 private:
+    bool no_protol;
     vector<string> header_list_;
     int length_;
 
     bool checkHeader(const char* line) {
+        if (header_list_.size() == 0) return true;
         for (int i = 0; i < header_list_.size(); ++i)
             if (header_list_[i].compare(0, string::npos, line, header_list_[i].length()) == 0)
                 return true;
         return false;
     }
-    string cutString(const char* line) {
-        string s(length_+1,'\0');
-        for (int i = 0; i < length_; ++i) s[i] = line[i];
-        return s;
-    }
 };
 
 class SerialPort {
 public:
-    SerialPort(int com, int baud_rate, SerialPortProtol protol)
+    SerialPort(int com, int baud_rate, SerialPortProtol protol = SerialPortProtol())
         : com_(com)
         , baud_rate_(baud_rate)
         , valid_(false)
@@ -91,13 +102,16 @@ public:
     ~SerialPort() {
     }
 
-    bool send(const char* msg, int length) {
+    void send(const char* msg, int length) {
         SendUARTMessageLength(com_, msg, length);
     }
+    void send(MyString& s) {
+        SendUARTMessageLength(com_, s.c_str(), s.length());
+    }
 
-    vector<string> receive() {
+    vector<MyString> receive() {
         if (!valid_) {
-            vector<string> list;
+            vector<MyString> list;
             printf("[Error] This serial port (com%d) is invalid.\n", com_);
             return list;
         }
@@ -115,7 +129,7 @@ private:
     int com_;
     int baud_rate_;
     
-    char buffer[8192];
+    char buffer[32768];
     int total_length;
 
 };
