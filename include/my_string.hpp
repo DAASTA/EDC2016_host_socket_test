@@ -27,16 +27,23 @@ public:
         , hex_str_(NULL)
     {
         // copy
-        string s(length_, '\0');
-        for (int i = 0; i < length_; ++i) s[i] = line[i];
-        str_ = s;
+        str_ = string(length_, '\0');
+        for (int i = 0; i < length_; ++i) str_[i] = line[i];
+    }
+
+    MyString(const MyString& ms) 
+        : hex_str_(NULL)            // attention
+        , length_(ms.length())
+        , str_(ms.str_)
+    {
     }
 
     ~MyString() {
         if (hex_str_ != NULL) delete[] hex_str_;
+        hex_str_ = NULL;
     }
 
-    const char* c_str() {
+    const char* c_str() const {
         return str_.c_str();
     }
     const char* hex_str() {
@@ -49,12 +56,12 @@ public:
         return hex_str_;
     }
 
-    const string str() { return str_; }
+    const string str() const { return str_; }
 
-    inline int length() { return length_; }
-    inline bool empty() { return length_ == 0; }
+    inline int length() const { return length_; }
+    inline bool empty() const { return length_ == 0; }
 
-    unsigned char operator[] (int i) {
+    unsigned char operator[] (int i) const {
         if (i >= 0 && i < length_)
             return str_[i];
         else return '\0';
