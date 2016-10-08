@@ -22,11 +22,11 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\com.hpp" />
-    <ClInclude Include="include\my_string.hpp" />
-    <ClInclude Include="include\serial_port.hpp" />
-    <ClInclude Include="include\socket.hpp" />
-    <ClInclude Include="include\time_stamp.hpp" />
+    <ClInclude Include="include\communication\com.hpp" />
+    <ClInclude Include="include\communication\my_string.hpp" />
+    <ClInclude Include="include\communication\serial_port.hpp" />
+    <ClInclude Include="include\communication\socket.hpp" />
+    <ClInclude Include="include\communication\time_stamp.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EEDB505D-9859-404E-887D-8135BCC790E4}</ProjectGuid>

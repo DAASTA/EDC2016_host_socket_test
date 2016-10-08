@@ -11,11 +11,9 @@
 #include<string>
 #include<cctype>
 
-using std::string;
-
 class MyString {
 public:
-    MyString(string s)
+    MyString(std::string s)
         : length_(s.length())
         , str_(s)
         , hex_str_(NULL)
@@ -27,7 +25,7 @@ public:
         , hex_str_(NULL)
     {
         // copy
-        str_ = string(length_, '\0');
+        str_ = std::string(length_, '\0');
         for (int i = 0; i < length_; ++i) str_[i] = line[i];
     }
 
@@ -56,7 +54,7 @@ public:
         return hex_str_;
     }
 
-    const string str() const { return str_; }
+    const std::string str() const { return str_; }
 
     inline int length() const { return length_; }
     inline bool empty() const { return length_ == 0; }
@@ -68,12 +66,12 @@ public:
     }
 
     MyString operator+ (const MyString& s2) const {
-        string s = str_ + s2.str_;
+        std::string s = str_ + s2.str_;
         return MyString(s.c_str(), length_ + s2.length_);
     }
 
 private:
     int length_;
-    string str_;
+    std::string str_;
     char* hex_str_;
 };

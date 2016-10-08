@@ -1,10 +1,10 @@
 // Created by wxk14, 2016.8
 //   test for the `socket` and `serial port`
 
-#include"my_string.hpp"
-#include"socket.hpp"
-#include"serial_port.hpp"
-#include"time_stamp.hpp"
+#include"communication/my_string.hpp"
+#include"communication/socket.hpp"
+#include"communication/serial_port.hpp"
+#include"communication/time_stamp.hpp"
 
 #include<cstdio>
 #include<conio.h>
@@ -18,7 +18,7 @@ MyString shared_data("");
 
 MyString function(MyString s_in)
 {
-    return MyString(getTimeStamp()) + MyString(" ") + shared_data;
+    return MyString(TimeStamp::getTimeStamp()) + MyString(" ") + shared_data;
 }
 
 int main(int argc, char* argv[])
@@ -31,25 +31,25 @@ int main(int argc, char* argv[])
     //head_list.push_back(buffer);
     //SerialPortProtol protol(head_list, 20);
 
-    SerialPort port(12, 115200/*, protol*/);
-
+    SerialPort port(13, 115200/*, protol*/);
+    
     while (true)
     {
-        vector<MyString> list = port.receive();
+        std::vector<MyString> list = port.receive();
         for (int i = 0; i < list.size(); ++i) 
-            printf("%s %s\n", getTimeStamp().c_str(), list[i].c_str());
+            printf("%s %s\n", TimeStamp::getTimeStamp().c_str(), list[i].c_str());
         if (list.size() > 0) shared_data = list[0];
 
         if (_kbhit()) {
             char ch = _getch();
             if (ch == ' ') {
-                printf("%s === 暂停: 等待输入 ===\n", getTimeStamp().c_str());
+                printf("%s === 暂停: 等待输入 ===\n", TimeStamp::getTimeStamp().c_str());
                 //system("pause");
                 printf("输入要发送的字符(ASCII): \n");
                 char buffer[256];
                 std::cin.getline(buffer, 256);
                 port.send(MyString(buffer));
-                printf("%s === 运行中 - 正在持续接受数据，按空格键暂停 ===\n", getTimeStamp().c_str());
+                printf("%s === 运行中 - 正在持续接受数据，按空格键暂停 ===\n", TimeStamp::getTimeStamp().c_str());
             }
         }
 

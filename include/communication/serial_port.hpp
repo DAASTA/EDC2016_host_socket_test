@@ -8,14 +8,11 @@
 
 #pragma once
 
-#include"com.hpp"
-#include"my_string.hpp"
+#include"communication/com.hpp"
+#include"communication/my_string.hpp"
 
 #include<vector>
 #include<string>
-
-using std::vector;
-using std::string;
 
 class SerialPortProtol {
 
@@ -24,7 +21,7 @@ public:
         : no_protol(true)
     {
     }
-    SerialPortProtol(vector<string> header_list, int length) 
+    SerialPortProtol(std::vector<std::string> header_list, int length) 
         : header_list_(header_list)
         , length_(length)
         , no_protol(false)
@@ -35,9 +32,9 @@ public:
     ~SerialPortProtol() {
     }
 
-    vector<MyString> decodeLines(char* line, int& len)
+    std::vector<MyString> decodeLines(char* line, int& len)
     {
-        vector<MyString> list;
+        std::vector<MyString> list;
         if (len <= 0) return list;
         if (no_protol) {
             list.push_back(MyString(line, len));
@@ -65,13 +62,13 @@ public:
 
 private:
     bool no_protol;
-    vector<string> header_list_;
+    std::vector<std::string> header_list_;
     int length_;
 
     bool checkHeader(const char* line) {
         if (header_list_.size() == 0) return true;
         for (int i = 0; i < header_list_.size(); ++i)
-            if (header_list_[i].compare(0, string::npos, line, header_list_[i].length()) == 0)
+            if (header_list_[i].compare(0, std::string::npos, line, header_list_[i].length()) == 0)
                 return true;
         return false;
     }
@@ -109,9 +106,9 @@ public:
         SendUARTMessageLength(com_, s.c_str(), s.length());
     }
 
-    vector<MyString> receive() {
+    std::vector<MyString> receive() {
         if (!valid_) {
-            vector<MyString> list;
+            std::vector<MyString> list;
             printf("[Error] This serial port (com%d) is invalid.\n", com_);
             return list;
         }

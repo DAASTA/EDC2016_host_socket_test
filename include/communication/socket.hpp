@@ -17,7 +17,7 @@
 #include<WinSock2.h>
 #include<windows.h>
 
-#include"my_string.hpp"
+#include"communication/my_string.hpp"
 
 #pragma comment(lib, "ws2_32.lib")
 
