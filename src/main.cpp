@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     //head_list.push_back(buffer);
     //SerialPortProtol protol(head_list, 20);
 
-    SerialPort port(13, 115200/*, protol*/);
+    SerialPort port(3, 115200/*, protol*/);
     
     while (true)
     {

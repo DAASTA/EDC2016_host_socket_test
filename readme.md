@@ -15,6 +15,10 @@
 
 功能均通过Windows API实现，因此只适用于Windows系统。
 
+另外注意，项目需要选择使用Unicode字符集：
+
+- 项目->属性->项目默认值->公共语言运行时支持->使用Unicode字符集
+
 ## Socket
 
 - SocketServer(port, function): 建立UDP服务器，监听本地port端口，并设置字符串处理函数function自动处理收到的字符串并返回回复的字符串。
